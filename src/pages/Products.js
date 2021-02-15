@@ -1,8 +1,14 @@
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
+import { Modal, ModalBody, ModalHeader } from 'reactstrap';
 import { firestore } from '../utils/firebase';
+
 export function Products() {
   const [products, setProducts] = useState(null);
+  const [modal, setModal] = useState(false);
+
+  const toggle = () => setModal(!modal);
+
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -13,8 +19,17 @@ export function Products() {
       expiration_date: '',
     },
     onSubmit: (values) => {
-      // aqui van los datos al servidor de firebase
-      console.log(values);
+      const { expiration_date } = values;
+      firestore
+        .collection('products')
+        .add({ ...values, expiration_date: new Date(expiration_date) })
+        .then(() => {
+          // aqui va el sweet alert de exito
+          toggle();
+        })
+        .catch((error) => {
+          // aqui va el sweet alert de error
+        });
     },
   });
 
@@ -34,20 +49,13 @@ export function Products() {
   }
 
   useEffect(() => {
-    const products = [];
-    firestore
-      .collection('products')
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((doc) =>
-          products.push({ id: doc.id, ...doc.data() }),
-        );
-        setProducts(products);
-      })
-      .catch((error) => {
-        // agregar sweet alert de error
-        console.error(`Error getting documents: ${error}`);
-      });
+    firestore.collection('products').onSnapshot((querySnapshot) => {
+      const products = [];
+      querySnapshot.forEach((doc) =>
+        products.push({ id: doc.id, ...doc.data() }),
+      );
+      setProducts(products);
+    });
   }, []);
 
   if (!products) {
@@ -69,111 +77,89 @@ export function Products() {
           <p className='text-primary m-0 font-weight-bold'>
             Información De Producto
           </p>
-          <a
-            className='btn btn-primary float-right'
-            role='button'
-            id='eliminar'
-            data-toggle='modal'
-            href='#elim'
-          >
-            Eliminar producto
-          </a>
-          <a
+          <button
             className='btn btn-primary float-right mr-1'
             role='button'
-            data-toggle='modal'
-            href='#modal'
+            onClick={toggle}
           >
             Insertar producto
-          </a>
-          <div className='modal fade' role='dialog' tabIndex='-1' id='modal'>
-            <form onSubmit={formik.handleSubmit}>
-              <div className='modal-dialog' role='document'>
-                <div className='modal-content'>
-                  <div className='modal-header'>
-                    <h4 className='modal-title'>
-                      Ingrese información del producto
-                    </h4>
-                    <button
-                      type='button'
-                      className='close'
-                      data-dismiss='modal'
-                      aria-label='Close'
-                    >
-                      <span aria-hidden='true'>×</span>
-                    </button>
-                  </div>
-                  <div className='modal-body pr-4'>
-                    <input
-                      type='text'
-                      id='Nombre-Del-Producto'
-                      className='form-control m-2 p-2 '
-                      placeholder='Ingrese nombre del producto'
-                      name='name'
-                      height='37px'
-                      width='457px'
-                      onChange={formik.handleChange}
-                      value={formik.values.name}
-                    />
-                    <input
-                      type='text'
-                      id='Proveedor-1'
-                      className='form-control m-2 p-2'
-                      placeholder='Ingrese nombre del proveedor'
-                      name='provider'
-                      height='37px'
-                      width='457px'
-                      onChange={formik.handleChange}
-                      value={formik.values.provider}
-                    />
-                    <input
-                      type='text'
-                      id='Proveedor-1'
-                      className='form-control m-2 p-2'
-                      placeholder='Ingrese marca del producto'
-                      name='mark'
-                      height='37px'
-                      width='457px'
-                      onChange={formik.handleChange}
-                      value={formik.values.mark}
-                    />
-                    <label className='mt-4 mb-0 mr-2 ml-2'>
-                      Fecha de vencimiento
-                    </label>
-                    <input
-                      type='date'
-                      name='expiration_date'
-                      className='mt-4 mb-0 mr-4 ml-3'
-                      onChange={formik.handleChange}
-                      value={formik.values.expiration_date}
-                    />
-                    <label className='mt-4 mb-0 mr-4 ml-2'>
-                      Numero de Stock
-                    </label>
-                    <input
-                      type='number'
-                      name='stock'
-                      className='mr-4 ml-3'
-                      onChange={formik.handleChange}
-                      value={formik.values.stock}
-                    />
-                  </div>
-                  <div className='modal-footer'>
-                    <button
-                      className='btn btn-light'
-                      type='button'
-                      data-dismiss='modal'
-                    >
-                      Cancelar
-                    </button>
-                    <button className='btn btn-primary' type='submit'>
-                      Registrar
-                    </button>
-                  </div>
+          </button>
+
+          <Modal isOpen={modal} toggle={toggle}>
+            <ModalHeader toggle={toggle}>
+              Ingrese información del producto
+            </ModalHeader>
+            <ModalBody>
+              <form onSubmit={formik.handleSubmit}>
+                <div className='modal-body pr-4'>
+                  <input
+                    type='text'
+                    id='Nombre-Del-Producto'
+                    className='form-control m-2 p-2 '
+                    placeholder='Ingrese nombre del producto'
+                    name='name'
+                    height='37px'
+                    width='457px'
+                    onChange={formik.handleChange}
+                    value={formik.values.name}
+                  />
+                  <input
+                    type='text'
+                    id='Proveedor-1'
+                    className='form-control m-2 p-2'
+                    placeholder='Ingrese nombre del proveedor'
+                    name='provider'
+                    height='37px'
+                    width='457px'
+                    onChange={formik.handleChange}
+                    value={formik.values.provider}
+                  />
+                  <input
+                    type='text'
+                    id='Proveedor-1'
+                    className='form-control m-2 p-2'
+                    placeholder='Ingrese marca del producto'
+                    name='mark'
+                    height='37px'
+                    width='457px'
+                    onChange={formik.handleChange}
+                    value={formik.values.mark}
+                  />
+                  <label className='mt-4 mb-0 mr-2 ml-2'>
+                    Fecha de vencimiento
+                  </label>
+                  <input
+                    type='date'
+                    name='expiration_date'
+                    className='mt-4 mb-0 mr-4 ml-3'
+                    onChange={formik.handleChange}
+                    value={formik.values.expiration_date}
+                  />
+                  <label className='mt-4 mb-0 mr-4 ml-2'>Numero de Stock</label>
+                  <input
+                    type='number'
+                    name='stock'
+                    className='mr-4 ml-3'
+                    onChange={formik.handleChange}
+                    value={formik.values.stock}
+                  />
                 </div>
-              </div>
-            </form>
-          </div>
+                <div className='modal-footer'>
+                  <button
+                    className='btn btn-light'
+                    type='button'
+                    onClick={toggle}
+                  >
+                    Cancelar
+                  </button>
+                  <button className='btn btn-primary' type='submit'>
+                    Registrar
+                  </button>
+                </div>
+              </form>
+            </ModalBody>
+          </Modal>
+
           <div
             className='modal fade show pr-5 d-blok'
             role='dialog'
@@ -218,7 +204,7 @@ export function Products() {
         <div className='card-body'>
           <div className='row'>
             <div className='col-md-6 text-nowrap'>
-              <div
+              {/* <div
                 id='dataTable_length'
                 className='dataTables_length'
                 aria-controls='dataTable'
@@ -233,9 +219,9 @@ export function Products() {
                   </select>
                   &nbsp;
                 </label>
-              </div>
+              </div> */}
             </div>
-            <div className='col-md-6'>
+            <div className='col-md-6 order-1'>
               <div
                 className='text-md-right dataTables_filter'
                 id='dataTable_filter'
