@@ -1,6 +1,7 @@
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
 import { Modal, ModalBody, ModalHeader } from 'reactstrap';
+import Swal from 'sweetalert2';
 import { firestore } from '../utils/firebase';
 
 export function Products() {
@@ -18,17 +19,25 @@ export function Products() {
       stock: 0,
       expiration_date: '',
     },
-    onSubmit: (values) => {
+    onSubmit: (values, actions) => {
       const { expiration_date } = values;
       firestore
         .collection('products')
         .add({ ...values, expiration_date: new Date(expiration_date) })
         .then(() => {
-          // aqui va el sweet alert de exito
+          Swal.fire({
+            icon: 'success',
+            title: `Producto ${values.name} con exito!`,
+          });
           toggle();
+          actions.resetForm();
         })
-        .catch((error) => {
-          // aqui va el sweet alert de error
+        .catch(() => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Ha ocurrido un error, no se ha podido eliminar el producto!',
+          });
         });
     },
   });
@@ -39,12 +48,17 @@ export function Products() {
       .doc(id)
       .delete()
       .then(() => {
-        // agregar sweet alert exitoso
-        console.log('Document successfully deleted!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Producto eliminado con exito!',
+        });
       })
-      .catch((error) => {
-        // agregar sweet alert de error
-        console.error('Error removing document: ', error);
+      .catch(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Ha ocurrido un error, no se ha podido eliminar el producto!',
+        });
       });
   }
 
@@ -250,8 +264,8 @@ export function Products() {
                   <th>Proveedor</th>
                   <th>Marca</th>
                   <th>Existencias</th>
-                  <th>F. Vencimiento</th>
                   <th>Precio</th>
+                  <th>F. Vencimiento</th>
                   <th>Acción</th>
                 </tr>
               </thead>
