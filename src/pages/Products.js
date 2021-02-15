@@ -6,7 +6,7 @@ export function Products() {
   useEffect(() => {
     const products = [];
     firestore
-      .collection('productshjj')
+      .collection('products')
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) =>
@@ -48,7 +48,7 @@ export function Products() {
             Eliminar producto
           </a>
           <a
-            className='btn btn-primary float-right'
+            className='btn btn-primary float-right mr-1'
             role='button'
             data-toggle='modal'
             href='#modal'
@@ -209,32 +209,41 @@ export function Products() {
                   <th>Marca</th>
                   <th>Existencias</th>
                   <th>F. Vencimiento</th>
+                  <th>Precio</th>
                   <th>
                     <input type='checkbox' />
                   </th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Vinilico (Blanco)</td>
-                  <td>Furingas.inc</td>
-                  <td>Ico</td>
-                  <td>75</td>
-                  <td>16/06/2026</td>
-                  <td>
-                    <input type='checkbox' />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Ferro fiesta</td>
-                  <td>Pinturil.inc</td>
-                  <td>Ferro</td>
-                  <td>46</td>
-                  <td>28/12/2025</td>
-                  <td>
-                    <input type='checkbox' />
-                  </td>
-                </tr>
+                {products.map((product) => (
+                  <tr key={product.id}>
+                    <td>{product.name}</td>
+                    <td>{product.provider}</td>
+                    <td>{product.mark}</td>
+                    <td>{product.stock}</td>
+                    <td>
+                      {new Intl.NumberFormat('es-CO', {
+                        style: 'currency',
+                        currency: 'COP',
+                        minimumFractionDigits: 1,
+                      }).format(product.price)}
+                    </td>
+                    <td>
+                      {product.expiration_date
+                        .toDate()
+                        .toLocaleDateString('es', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                    </td>
+                    <td>
+                      <input type='checkbox' />
+                    </td>
+                  </tr>
+                ))}
               </tbody>
               <tfoot>
                 <tr></tr>
