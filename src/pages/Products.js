@@ -1,7 +1,37 @@
+import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
 import { firestore } from '../utils/firebase';
 export function Products() {
   const [products, setProducts] = useState(null);
+  const formik = useFormik({
+    initialValues: {
+      name: '',
+      provider: '',
+      mark: '',
+      price: 0,
+      stock: 0,
+      expiration_date: '',
+    },
+    onSubmit: (values) => {
+      // aqui van los datos al servidor de firebase
+      console.log(values);
+    },
+  });
+
+  async function deleteProduct(id) {
+    firestore
+      .collection('products')
+      .doc(id)
+      .delete()
+      .then(() => {
+        // agregar sweet alert exitoso
+        console.log('Document successfully deleted!');
+      })
+      .catch((error) => {
+        // agregar sweet alert de error
+        console.error('Error removing document: ', error);
+      });
+  }
 
   useEffect(() => {
     const products = [];
@@ -15,6 +45,7 @@ export function Products() {
         setProducts(products);
       })
       .catch((error) => {
+        // agregar sweet alert de error
         console.error(`Error getting documents: ${error}`);
       });
   }, []);
@@ -56,67 +87,92 @@ export function Products() {
             Insertar producto
           </a>
           <div className='modal fade' role='dialog' tabIndex='-1' id='modal'>
-            <div className='modal-dialog' role='document'>
-              <div className='modal-content'>
-                <div className='modal-header'>
-                  <h4 className='modal-title'>
-                    Ingrese información del producto
-                  </h4>
-                  <button
-                    type='button'
-                    className='close'
-                    data-dismiss='modal'
-                    aria-label='Close'
-                  >
-                    <span aria-hidden='true'>×</span>
-                  </button>
-                </div>
-                <div className='modal-body pr-4'>
-                  <input
-                    type='text'
-                    id='Nombre-Del-Producto'
-                    className='form-control m-2 p-2 '
-                    placeholder='Ingrese nombre del producto'
-                    height='37px'
-                    width='457px'
-                  />
-                  <input
-                    type='text'
-                    id='Proveedor-1'
-                    className='form-control m-2 p-2'
-                    placeholder='Ingrese nombre del proveedor'
-                    height='37px'
-                    width='457px'
-                  />
-                  <input
-                    type='text'
-                    id='Proveedor-1'
-                    className='form-control m-2 p-2'
-                    placeholder='Ingrese marca del producto'
-                    height='37px'
-                    width='457px'
-                  />
-                  <label className='mt-4 mb-0 mr-2 ml-2'>
-                    Fecha de vencimiento
-                  </label>
-                  <input type='date' className='mt-4 mb-0 mr-4 ml-3' />
-                  <label className='mt-4 mb-0 mr-4 ml-2'>Numero de Stock</label>
-                  <input type='number' className='mr-4 ml-3' />
-                </div>
-                <div className='modal-footer'>
-                  <button
-                    className='btn btn-light'
-                    type='button'
-                    data-dismiss='modal'
-                  >
-                    Cancelar
-                  </button>
-                  <button className='btn btn-primary' type='button'>
-                    Registrar
-                  </button>
+            <form onSubmit={formik.handleSubmit}>
+              <div className='modal-dialog' role='document'>
+                <div className='modal-content'>
+                  <div className='modal-header'>
+                    <h4 className='modal-title'>
+                      Ingrese información del producto
+                    </h4>
+                    <button
+                      type='button'
+                      className='close'
+                      data-dismiss='modal'
+                      aria-label='Close'
+                    >
+                      <span aria-hidden='true'>×</span>
+                    </button>
+                  </div>
+                  <div className='modal-body pr-4'>
+                    <input
+                      type='text'
+                      id='Nombre-Del-Producto'
+                      className='form-control m-2 p-2 '
+                      placeholder='Ingrese nombre del producto'
+                      name='name'
+                      height='37px'
+                      width='457px'
+                      onChange={formik.handleChange}
+                      value={formik.values.name}
+                    />
+                    <input
+                      type='text'
+                      id='Proveedor-1'
+                      className='form-control m-2 p-2'
+                      placeholder='Ingrese nombre del proveedor'
+                      name='provider'
+                      height='37px'
+                      width='457px'
+                      onChange={formik.handleChange}
+                      value={formik.values.provider}
+                    />
+                    <input
+                      type='text'
+                      id='Proveedor-1'
+                      className='form-control m-2 p-2'
+                      placeholder='Ingrese marca del producto'
+                      name='mark'
+                      height='37px'
+                      width='457px'
+                      onChange={formik.handleChange}
+                      value={formik.values.mark}
+                    />
+                    <label className='mt-4 mb-0 mr-2 ml-2'>
+                      Fecha de vencimiento
+                    </label>
+                    <input
+                      type='date'
+                      name='expiration_date'
+                      className='mt-4 mb-0 mr-4 ml-3'
+                      onChange={formik.handleChange}
+                      value={formik.values.expiration_date}
+                    />
+                    <label className='mt-4 mb-0 mr-4 ml-2'>
+                      Numero de Stock
+                    </label>
+                    <input
+                      type='number'
+                      name='stock'
+                      className='mr-4 ml-3'
+                      onChange={formik.handleChange}
+                      value={formik.values.stock}
+                    />
+                  </div>
+                  <div className='modal-footer'>
+                    <button
+                      className='btn btn-light'
+                      type='button'
+                      data-dismiss='modal'
+                    >
+                      Cancelar
+                    </button>
+                    <button className='btn btn-primary' type='submit'>
+                      Registrar
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </form>
           </div>
           <div
             className='modal fade show pr-5 d-blok'
@@ -210,9 +266,7 @@ export function Products() {
                   <th>Existencias</th>
                   <th>F. Vencimiento</th>
                   <th>Precio</th>
-                  <th>
-                    <input type='checkbox' />
-                  </th>
+                  <th>Acción</th>
                 </tr>
               </thead>
               <tbody>
@@ -240,7 +294,11 @@ export function Products() {
                         })}
                     </td>
                     <td>
-                      <input type='checkbox' />
+                      <span
+                        className='fa fa-trash text-danger'
+                        style={{ cursor: 'pointer', fontSize: '1.2em' }}
+                        onClick={() => deleteProduct(product.id)}
+                      ></span>
                     </td>
                   </tr>
                 ))}
