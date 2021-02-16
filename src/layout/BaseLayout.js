@@ -1,11 +1,11 @@
 import { Link } from '@reach/router';
 import { Footer } from '../components/Footer';
 import { useAuthentication } from '../context/Context';
-
+import { firebase } from '../utils/firebase';
 export function BaseLayout({ component: Component, ...props }) {
   const user = JSON.parse(localStorage.getItem('gestor:user'));
   const { logout } = useAuthentication();
-
+  console.log(firebase.auth().currentUser);
   return (
     <div id='wrapper'>
       <>
