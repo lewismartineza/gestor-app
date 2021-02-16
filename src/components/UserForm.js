@@ -34,7 +34,7 @@ export function UserForm() {
           <div className='form-row'>
             <div className='col'>
               <div className='form-group'>
-                <label for='username'>
+                <label htmlFor='username'>
                   <strong>Nombre De Usuario</strong>
                 </label>
                 <input
@@ -49,7 +49,7 @@ export function UserForm() {
             </div>
             <div className='col'>
               <div className='form-group'>
-                <label for='email'>
+                <label htmlFor='email'>
                   <strong>Correo</strong>
                   <br />
                 </label>
@@ -67,7 +67,7 @@ export function UserForm() {
           <div className='form-row'>
             <div className='col'>
               <div className='form-group'>
-                <label for='first_name'>
+                <label htmlFor='first_name'>
                   <strong>Nombres</strong>
                   <br />
                 </label>
@@ -83,7 +83,7 @@ export function UserForm() {
             </div>
             <div className='col'>
               <div className='form-group'>
-                <label for='last_name'>
+                <label htmlFor='last_name'>
                   <strong>Apellidos</strong>
                   <br />
                 </label>
