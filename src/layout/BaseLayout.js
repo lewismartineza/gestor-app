@@ -1,7 +1,11 @@
 import { Link } from '@reach/router';
 import { Footer } from '../components/Footer';
+import { useAuthentication } from '../context/Context';
 
 export function BaseLayout({ component: Component, ...props }) {
+  const user = JSON.parse(localStorage.getItem('gestor:user'));
+  const { logout } = useAuthentication();
+
   return (
     <div id='wrapper'>
       <>
@@ -110,7 +114,7 @@ export function BaseLayout({ component: Component, ...props }) {
                         href='#'
                       >
                         <span className='d-none d-lg-inline mr-2 text-gray-600 small'>
-                          Tiendita La Prosperidad
+                          {user.displayName}
                         </span>
                         <img
                           className='border rounded-circle img-profile'
@@ -118,23 +122,26 @@ export function BaseLayout({ component: Component, ...props }) {
                         />
                       </a>
                       <div className='dropdown-menu shadow dropdown-menu-right animated--grow-in'>
-                        <a className='dropdown-item' href='#'>
+                        <Link className='dropdown-item' to='/perfil'>
                           <i className='fas fa-user fa-sm fa-fw mr-2 text-gray-400'></i>
                           &nbsp;Perfil
-                        </a>
-                        <a className='dropdown-item' href='#'>
+                        </Link>
+                        {/*  <a className='dropdown-item' href='#'>
                           <i className='fas fa-cogs fa-sm fa-fw mr-2 text-gray-400'></i>
                           &nbsp;Ajustes
                         </a>
                         <a className='dropdown-item' href='#'>
                           <i className='fas fa-list fa-sm fa-fw mr-2 text-gray-400'></i>
                           &nbsp;Panel de actividad
-                        </a>
+                        </a> */}
                         <div className='dropdown-divider'></div>
-                        <a className='dropdown-item' href='#'>
+                        <span
+                          className='dropdown-item'
+                          onClick={() => logout()}
+                        >
                           <i className='fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400'></i>
                           &nbsp;Salir
-                        </a>
+                        </span>
                       </div>
                     </div>
                   </li>

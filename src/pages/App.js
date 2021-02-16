@@ -1,4 +1,5 @@
-import { Router } from '@reach/router';
+import { Redirect, Router } from '@reach/router';
+import { useAuthentication } from '../context/Context';
 import { BaseLayout } from '../layout/BaseLayout';
 import { Dashboard } from './Dashboard';
 import { Login } from './Login';
@@ -7,19 +8,28 @@ import { Products } from './Products';
 import { Profile } from './Profile';
 import { SingUp } from './SingUp';
 function App() {
+  const { isAuthenticated } = useAuthentication();
+
   return (
-    <>
-      <Router>
-        <Login path='/' />
-        <SingUp path='registrarse' />
+    <Router>
+      {isAuthenticated && (
+        <Redirect noThrow from='/registrarse' to='/dashboard' />
+      )}
+      {isAuthenticated && <Redirect noThrow from='/' to='/dashboard' />}
 
-        <BaseLayout path='dashboard' component={Dashboard} />
-        <BaseLayout path='perfil' component={Profile} />
-        <BaseLayout path='productos' component={Products} />
+      <Login path='/' />
+      <SingUp path='registrarse' />
 
-        <BaseLayout default component={NotFound} />
-      </Router>
-    </>
+      {!isAuthenticated && <Redirect noThrow from='/dashboard' to='/' />}
+      {!isAuthenticated && <Redirect noThrow from='/perfil' to='/' />}
+      {!isAuthenticated && <Redirect noThrow from='/productos' to='/' />}
+
+      <BaseLayout path='dashboard' component={Dashboard} />
+      <BaseLayout path='perfil' component={Profile} />
+      <BaseLayout path='productos' component={Products} />
+
+      <BaseLayout default component={NotFound} />
+    </Router>
   );
 }
 

@@ -1,12 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { AuthenticationProvider } from './context/Context';
 import App from './pages/App';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  <AuthenticationProvider>
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  </AuthenticationProvider>,
   document.getElementById('root'),
 );
 

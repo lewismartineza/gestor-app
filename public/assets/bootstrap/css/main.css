@@ -9,3 +9,7 @@
   margin-right: 3px;
   border-radius: 5px;
 }
+
+.bg-gradient-primary {
+  height: 100vh;
+}
