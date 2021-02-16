@@ -1,4 +1,29 @@
+// import Swal from 'sweetalert2';
+import { useFormik } from 'formik';
+
+
 export function ContactForm() {
+  const formik = useFormik({
+    initialValues: {
+      address: '',
+      city: '',
+      country: '',
+    },
+    onSubmit: (values, actions) => {
+      console.log(values);
+      // Swal.fire({
+      //   icon: 'success',
+      //   title: `Producto ${values.name} con exito!`,
+      // });
+      // actions.resetForm();
+      // Swal.fire({
+      //   icon: 'error',
+      //   title: 'Oops...',
+      //   text: 'Ha ocurrido un error, no se ha podido eliminar el producto!',
+      // });
+    },
+  });
+
   return (
     <div className='card shadow'>
       <div className='card-header py-3'>
@@ -7,9 +32,9 @@ export function ContactForm() {
         </p>
       </div>
       <div className='card-body'>
-        <form>
+        <form onSubmit={formik.handleSubmit}>
           <div className='form-group'>
-            <label for='address'>
+            <label htmlFor='address'>
               <strong>Dirección</strong>
               <br />
             </label>
@@ -18,12 +43,14 @@ export function ContactForm() {
               type='text'
               placeholder='Turin,56'
               name='address'
+              onChange={formik.handleChange}
+              value={formik.values.address}
             />
           </div>
           <div className='form-row'>
             <div className='col'>
               <div className='form-group'>
-                <label for='city'>
+                <label htmlFor='city'>
                   <strong>Ciudad</strong>
                   <br />
                 </label>
@@ -32,12 +59,14 @@ export function ContactForm() {
                   type='text'
                   placeholder='Cartagena'
                   name='city'
+                  onChange={formik.handleChange}
+                  value={formik.values.city}
                 />
               </div>
             </div>
             <div className='col'>
               <div className='form-group'>
-                <label for='country'>
+                <label htmlFor='country'>
                   <strong>Pais</strong>
                 </label>
                 <input
@@ -45,6 +74,8 @@ export function ContactForm() {
                   type='text'
                   placeholder='Colombia'
                   name='country'
+                  onChange={formik.handleChange}
+                  value={formik.values.country}
                 />
               </div>
             </div>
