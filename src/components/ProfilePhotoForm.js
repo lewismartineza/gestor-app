@@ -1,4 +1,8 @@
 export function ProfilePhotoForm() {
+  const { displayName } = JSON.parse(
+    window.localStorage.getItem('gestor:user'),
+  );
+
   return (
     <div className='col-lg-4'>
       <div className='card mb-3'>
@@ -10,9 +14,9 @@ export function ProfilePhotoForm() {
             height='160'
           />
           <div className='mb-3'>
-            <button className='btn btn-primary btn-sm' type='button'>
-              Cambiar Fotos
-            </button>
+            <h1 className='text-primary m-0 font-weight-bold'>
+              {displayName?.split('|')[2]}
+            </h1>
           </div>
         </div>
       </div>

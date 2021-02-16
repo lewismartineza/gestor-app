@@ -9,6 +9,7 @@ import { firestore } from '../utils/firebase';
 const PAGE_SIZE = 15;
 
 export function Products() {
+  const { uid } = JSON.parse(window.localStorage.getItem('gestor:user'));
   const [products, setProducts] = useState(null);
   const [modal, setModal] = useState(false);
   const [search, setSearch] = useState('');
@@ -38,6 +39,7 @@ export function Products() {
           ...values,
           name: values.name.toLowerCase(),
           expiration_date: new Date(expiration_date),
+          userId: uid,
         })
         .then(() => {
           Swal.fire({
@@ -106,21 +108,24 @@ export function Products() {
   }
 
   useEffect(() => {
-    firestore.collection('products').onSnapshot((querySnapshot) => {
-      const products = [];
-      querySnapshot.forEach((doc) =>
-        products.push({ id: doc.id, ...doc.data() }),
-      );
-      setProducts(products);
+    firestore
+      .collection('products')
+      .where('userId', '==', uid)
+      .onSnapshot((querySnapshot) => {
+        const products = [];
+        querySnapshot.forEach((doc) =>
+          products.push({ id: doc.id, ...doc.data() }),
+        );
+        setProducts(products);
 
-      const data = _.chunk(products, PAGE_SIZE);
-      setPagination(() => ({
-        activePage: 1,
-        totalPage: data.length,
-        totalProducts: products.length,
-        data,
-      }));
-    });
+        const data = _.chunk(products, PAGE_SIZE);
+        setPagination(() => ({
+          activePage: 1,
+          totalPage: data.length,
+          totalProducts: products.length,
+          data,
+        }));
+      });
   }, [search]);
 
   if (!products) {

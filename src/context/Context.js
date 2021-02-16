@@ -38,6 +38,7 @@ export function AuthenticationProvider({ children }) {
             displayName,
             stsTokenManager: { accessToken },
           } = credential.user.toJSON();
+
           window.localStorage.setItem('gestor:_tk_', accessToken);
           window.localStorage.setItem('gestor:_rf_', refreshToken);
           window.localStorage.setItem(
@@ -78,14 +79,8 @@ export function AuthenticationProvider({ children }) {
             photoURL,
             email,
             accessToken,
-            displayName: `${first_name} ${last_name}`,
+            displayName: `${first_name}|${last_name}|${first_name} ${last_name}`,
           };
-
-          if (credentials.user) {
-            credentials.user.updateProfile({
-              displayName: `${first_name} ${last_name}`,
-            });
-          }
 
           setAuthenticated(true);
 

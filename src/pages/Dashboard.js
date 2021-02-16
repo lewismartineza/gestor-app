@@ -4,6 +4,7 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 import { firestore } from '../utils/firebase';
 
 export function Dashboard() {
+  const { uid } = JSON.parse(window.localStorage.getItem('gestor:user'));
   const [products, setProducts] = useState({
     groupByMonth: [],
     groupByStatus: [],
@@ -62,48 +63,51 @@ export function Dashboard() {
   };
 
   useEffect(() => {
-    firestore.collection('products').onSnapshot((querySnapshot) => {
-      const products = [];
-      querySnapshot.forEach((doc) =>
-        products.push({
-          id: doc.id,
-          ...doc.data(),
-          expiration_date: doc.data().expiration_date.toDate(),
-        }),
-      );
+    firestore
+      .collection('products')
+      .where('userId', '==', uid)
+      .onSnapshot((querySnapshot) => {
+        const products = [];
+        querySnapshot.forEach((doc) =>
+          products.push({
+            id: doc.id,
+            ...doc.data(),
+            expiration_date: doc.data().expiration_date.toDate(),
+          }),
+        );
 
-      const groupByMonth = _.countBy(products, (product) => {
-        const { expiration_date } = product;
-        const { labels } = data;
-        const month = expiration_date.getMonth();
-        return labels[month];
+        const groupByMonth = _.countBy(products, (product) => {
+          const { expiration_date } = product;
+          const { labels } = data;
+          const month = expiration_date.getMonth();
+          return labels[month];
+        });
+
+        const groupByStatus = products.reduce(
+          (instance, currentProduct) => {
+            const { expiration_date } = currentProduct;
+            const today = new Date().getTime();
+            const expirationDateProduct = expiration_date.getTime();
+
+            if (today >= expirationDateProduct) {
+              instance.expired = instance.expired + 1;
+            } else {
+              instance.normal = instance.normal + 1;
+            }
+            return instance;
+          },
+          { expired: 0, normal: 0 },
+        );
+
+        setProducts({
+          groupByMonth: Object.keys(groupByMonth)
+            ? Object.values(groupByMonth)
+            : [],
+          groupByStatus: Object.keys(groupByStatus)
+            ? Object.values(groupByStatus)
+            : [],
+        });
       });
-
-      const groupByStatus = products.reduce(
-        (instance, currentProduct) => {
-          const { expiration_date } = currentProduct;
-          const today = new Date().getTime();
-          const expirationDateProduct = expiration_date.getTime();
-
-          if (today >= expirationDateProduct) {
-            instance.expired = instance.expired + 1;
-          } else {
-            instance.normal = instance.normal + 1;
-          }
-          return instance;
-        },
-        { expired: 0, normal: 0 },
-      );
-
-      setProducts({
-        groupByMonth: Object.keys(groupByMonth)
-          ? Object.values(groupByMonth)
-          : [],
-        groupByStatus: Object.keys(groupByStatus)
-          ? Object.values(groupByStatus)
-          : [],
-      });
-    });
   }, []);
 
   return (
