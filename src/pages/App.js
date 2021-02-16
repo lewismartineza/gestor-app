@@ -17,7 +17,7 @@ function App() {
         <BaseLayout path='perfil' component={Profile} />
         <BaseLayout path='productos' component={Products} />
 
-        <NotFound default />
+        <BaseLayout default component={NotFound} />
       </Router>
     </>
   );

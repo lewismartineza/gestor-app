@@ -1,22 +1,132 @@
+import _ from 'lodash';
+import { useEffect, useState } from 'react';
+import { Bar, Doughnut } from 'react-chartjs-2';
+import { firestore } from '../utils/firebase';
+
 export function Dashboard() {
+  const [products, setProducts] = useState({
+    groupByMonth: [],
+    groupByStatus: [],
+  });
+
+  const data = {
+    labels: [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ],
+    datasets: [
+      {
+        label: '# de productos por mes',
+        data: products.groupByMonth,
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.2)',
+          'rgba(54, 162, 235, 0.2)',
+          'rgba(255, 206, 86, 0.2)',
+          'rgba(75, 192, 192, 0.2)',
+          'rgba(153, 102, 255, 0.2)',
+          'rgba(255, 159, 64, 0.2)',
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+          'rgba(255, 159, 64, 1)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const options = {
+    scales: {
+      yAxes: [
+        {
+          ticks: {
+            beginAtZero: true,
+          },
+        },
+      ],
+    },
+  };
+
+  useEffect(() => {
+    firestore.collection('products').onSnapshot((querySnapshot) => {
+      const products = [];
+      querySnapshot.forEach((doc) =>
+        products.push({
+          id: doc.id,
+          ...doc.data(),
+          expiration_date: doc.data().expiration_date.toDate(),
+        }),
+      );
+
+      const groupByMonth = _.countBy(products, (product) => {
+        const { expiration_date } = product;
+        const { labels } = data;
+        const month = expiration_date.getMonth();
+        return labels[month];
+      });
+
+      const groupByStatus = products.reduce(
+        (instance, currentProduct) => {
+          const { expiration_date } = currentProduct;
+          const today = new Date().getTime();
+          const expirationDateProduct = expiration_date.getTime();
+
+          if (today >= expirationDateProduct) {
+            instance.expired = instance.expired + 1;
+          } else {
+            instance.normal = instance.normal + 1;
+          }
+          return instance;
+        },
+        { expired: 0, normal: 0 },
+      );
+
+      setProducts({
+        groupByMonth: Object.keys(groupByMonth)
+          ? Object.values(groupByMonth)
+          : [],
+        groupByStatus: Object.keys(groupByStatus)
+          ? Object.values(groupByStatus)
+          : [],
+      });
+    });
+  }, []);
+
   return (
     <div className='container-fluid'>
       <div className='d-sm-flex justify-content-between align-items-center mb-4'>
         <h3 className='text-dark mb-0'>Inicio</h3>
-        <a
+        <button
           className='btn btn-primary btn-sm d-none d-sm-inline-block'
           role='button'
-          href='#'
+          onClick={() => {
+            window.print();
+          }}
         >
-          <i className='fas fa-download fa-sm text-white-50'></i>Generar Reporte
-        </a>
+          <i className='fas fa-download fa-sm text-white-50'></i> Descargar
+          Gráfica
+        </button>
       </div>
       <div className='row'>
         <div className='col-lg-7 col-xl-8'>
           <div className='card shadow mb-4'>
             <div className='card-header d-flex justify-content-between align-items-center'>
               <h6 className='text-primary font-weight-bold m-0'>
-                Movimientos De Hoy
+                Movimientos Por Mes
               </h6>
               <div className='dropdown no-arrow'>
                 <button
@@ -45,9 +155,7 @@ export function Dashboard() {
               </div>
             </div>
             <div className='card-body'>
-              <div className='chart-area'>
-                <canvas data-bs-chart='{"type":"line","data":{"labels":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug"],"datasets":[{"label":"Earnings","fill":true,"data":["0","10000","5000","15000","10000","20000","15000","25000"],"backgroundColor":"rgba(78, 115, 223, 0.05)","borderColor":"rgba(78, 115, 223, 1)"}]},"options":{"maintainAspectRatio":false,"legend":{"display":false},"title":{},"scales":{"xAxes":[{"gridLines":{"color":"rgb(234, 236, 244)","zeroLineColor":"rgb(234, 236, 244)","drawBorder":false,"drawTicks":false,"borderDash":["2"],"zeroLineBorderDash":["2"],"drawOnChartArea":false},"ticks":{"fontColor":"#858796","padding":20}}],"yAxes":[{"gridLines":{"color":"rgb(234, 236, 244)","zeroLineColor":"rgb(234, 236, 244)","drawBorder":false,"drawTicks":false,"borderDash":["2"],"zeroLineBorderDash":["2"]},"ticks":{"fontColor":"#858796","padding":20}}]}}}'></canvas>
-              </div>
+              <Bar data={data} options={options} />
             </div>
           </div>
         </div>
@@ -84,67 +192,23 @@ export function Dashboard() {
               </div>
             </div>
             <div className='card-body'>
-              <div className='chart-area'>
-                <canvas data-bs-chart='{"type":"doughnut","data":{"labels":["Direct","Social","Referral"],"datasets":[{"label":"","backgroundColor":["#4e73df","#1cc88a","#36b9cc"],"borderColor":["#ffffff","#ffffff","#ffffff"],"data":["50","30","15"]}]},"options":{"maintainAspectRatio":false,"legend":{"display":false},"title":{}}}'></canvas>
-              </div>
-              <div className='text-center small mt-4'>
-                <span className='mr-2'>
-                  <i className='fas fa-circle text-primary'></i>
-                  &nbsp;Caduca En 3 Meses
-                </span>
-                <span className='mr-2'>
-                  <i className='fas fa-circle text-success'></i>
-                  &nbsp;Caduca En 6 Meses
-                </span>
-                <span className='mr-2'>
-                  <i className='fas fa-circle text-info'></i>&nbsp;Caduca En 12
-                  Meses
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className='row'>
-        <div className='col'>
-          <div className='row'>
-            <div className='col-lg-6 mb-4'>
-              <div className='card text-white bg-danger shadow'>
-                <div className='card-body'>
-                  <p className='m-0'>Caduca En 1 Mes</p>
-                  <p className='text-white-50 small m-0'></p>
-                </div>
-              </div>
-            </div>
-            <div className='col-lg-6 mb-4'>
-              <div className='card text-white bg-primary shadow'>
-                <div className='card-body'>
-                  <p className='m-0'>
-                    &nbsp;Caduca En 3 Meses
-                    <br />
-                  </p>
-                  <p className='text-white-50 small m-0'></p>
-                </div>
-              </div>
-            </div>
-            <div className='col-lg-6 mb-4'>
-              <div className='card text-white bg-success shadow'>
-                <div className='card-body'>
-                  <p className='m-0'>
-                    Caduca En 6 Meses
-                    <br />
-                  </p>
-                  <p className='text-white-50 small m-0'></p>
-                </div>
-              </div>
-            </div>
-            <div className='col-lg-6 mb-4'>
-              <div className='card text-white bg-info shadow'>
-                <div className='card-body'>
-                  <p className='m-0'>Caduca en 12 Meses</p>
-                  <p className='text-white-50 small m-0'></p>
-                </div>
-              </div>
+              <Doughnut
+                data={{
+                  ...data,
+                  labels: ['Vencidos', 'Buen estado'],
+                  datasets: [
+                    {
+                      label: 'Cantidad de productos vencidos / Buen estado',
+                      data: products.groupByStatus,
+                      backgroundColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                      ],
+                    },
+                  ],
+                }}
+                options={options}
+              />
             </div>
           </div>
         </div>

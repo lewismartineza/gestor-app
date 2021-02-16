@@ -6,7 +6,7 @@ import { Modal, ModalBody, ModalHeader } from 'reactstrap';
 import Swal from 'sweetalert2';
 import { firestore } from '../utils/firebase';
 
-const PAGE_SIZE = 2;
+const PAGE_SIZE = 15;
 
 export function Products() {
   const [products, setProducts] = useState(null);
@@ -142,13 +142,24 @@ export function Products() {
           <p className='text-primary m-0 font-weight-bold'>
             Información De Producto
           </p>
-          <button
-            className='btn btn-primary float-right mr-1'
-            role='button'
-            onClick={toggle}
-          >
-            Insertar producto
-          </button>
+          <div className='d-flex justify-content-end'>
+            <button
+              className='btn btn-primary btn-sm mr-1'
+              role='button'
+              onClick={toggle}
+            >
+              Insertar producto
+            </button>
+            <button
+              className='btn btn-primary btn-sm  d-none d-sm-inline-block'
+              role='button'
+              onClick={() => {
+                window.print();
+              }}
+            >
+              <i className='fas fa-download fa-sm text-white-50'></i> Descargar
+            </button>
+          </div>
 
           <Modal isOpen={modal} toggle={toggle}>
             <ModalHeader toggle={toggle}>
