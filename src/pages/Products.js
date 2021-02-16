@@ -1,12 +1,23 @@
 import { useFormik } from 'formik';
+import _ from 'lodash';
 import { useEffect, useState } from 'react';
+import Pagination from 'react-js-pagination';
 import { Modal, ModalBody, ModalHeader } from 'reactstrap';
 import Swal from 'sweetalert2';
 import { firestore } from '../utils/firebase';
 
+const PAGE_SIZE = 2;
+
 export function Products() {
   const [products, setProducts] = useState(null);
   const [modal, setModal] = useState(false);
+  const [search, setSearch] = useState('');
+  const [pagination, setPagination] = useState({
+    activePage: 0,
+    totalPage: 0,
+    totalProducts: 0,
+    data: [],
+  });
 
   const toggle = () => setModal(!modal);
 
@@ -23,7 +34,11 @@ export function Products() {
       const { expiration_date } = values;
       firestore
         .collection('products')
-        .add({ ...values, expiration_date: new Date(expiration_date) })
+        .add({
+          ...values,
+          name: values.name.toLowerCase(),
+          expiration_date: new Date(expiration_date),
+        })
         .then(() => {
           Swal.fire({
             icon: 'success',
@@ -62,6 +77,34 @@ export function Products() {
       });
   }
 
+  async function handlePageChange(pageNumber) {
+    if (pageNumber === pagination.activePage) {
+      return;
+    }
+    setPagination({ ...pagination, activePage: pageNumber });
+  }
+
+  async function handleSearch(evt) {
+    if (evt.key === 'Enter') {
+      firestore
+        .collection('products')
+        .where('name', '==', search.toLowerCase())
+        .get()
+        .then((query) => {
+          const products = [];
+          query.forEach((doc) => products.push({ id: doc.id, ...doc.data() }));
+
+          const data = _.chunk(products, PAGE_SIZE);
+          setPagination(() => ({
+            activePage: 1,
+            totalPage: data.length,
+            totalProducts: products.length,
+            data,
+          }));
+        });
+    }
+  }
+
   useEffect(() => {
     firestore.collection('products').onSnapshot((querySnapshot) => {
       const products = [];
@@ -69,8 +112,16 @@ export function Products() {
         products.push({ id: doc.id, ...doc.data() }),
       );
       setProducts(products);
+
+      const data = _.chunk(products, PAGE_SIZE);
+      setPagination(() => ({
+        activePage: 1,
+        totalPage: data.length,
+        totalProducts: products.length,
+        data,
+      }));
     });
-  }, []);
+  }, [search]);
 
   if (!products) {
     return (
@@ -138,6 +189,16 @@ export function Products() {
                     width='457px'
                     onChange={formik.handleChange}
                     value={formik.values.mark}
+                  />
+                  <input
+                    type='text'
+                    className='form-control m-2 p-2'
+                    placeholder='Ingrese el precio del producto'
+                    name='price'
+                    height='37px'
+                    width='457px'
+                    onChange={formik.handleChange}
+                    value={formik.values.price}
                   />
                   <label className='mt-4 mb-0 mr-2 ml-2'>
                     Fecha de vencimiento
@@ -246,6 +307,9 @@ export function Products() {
                     className='form-control form-control-sm'
                     aria-controls='dataTable'
                     placeholder='Buscar'
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    onKeyPress={handleSearch}
                   />
                 </label>
               </div>
@@ -270,38 +334,46 @@ export function Products() {
                 </tr>
               </thead>
               <tbody>
-                {products.map((product) => (
-                  <tr key={product.id}>
-                    <td>{product.name}</td>
-                    <td>{product.provider}</td>
-                    <td>{product.mark}</td>
-                    <td>{product.stock}</td>
-                    <td>
-                      {new Intl.NumberFormat('es-CO', {
-                        style: 'currency',
-                        currency: 'COP',
-                        minimumFractionDigits: 1,
-                      }).format(product.price)}
-                    </td>
-                    <td>
-                      {product.expiration_date
-                        .toDate()
-                        .toLocaleDateString('es', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                    </td>
-                    <td>
-                      <span
-                        className='fa fa-trash text-danger'
-                        style={{ cursor: 'pointer', fontSize: '1.2em' }}
-                        onClick={() => deleteProduct(product.id)}
-                      ></span>
+                {pagination.data.length ? (
+                  pagination.data[pagination.activePage - 1].map((product) => (
+                    <tr key={product.id}>
+                      <td>{product.name}</td>
+                      <td>{product.provider}</td>
+                      <td>{product.mark}</td>
+                      <td>{product.stock}</td>
+                      <td>
+                        {new Intl.NumberFormat('es-CO', {
+                          style: 'currency',
+                          currency: 'COP',
+                          minimumFractionDigits: 1,
+                        }).format(product.price)}
+                      </td>
+                      <td>
+                        {product.expiration_date
+                          .toDate()
+                          .toLocaleDateString('es', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                      </td>
+                      <td>
+                        <span
+                          className='fa fa-trash text-danger'
+                          style={{ cursor: 'pointer', fontSize: '1.2em' }}
+                          onClick={() => deleteProduct(product.id)}
+                        ></span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className='text-center' colSpan={7}>
+                      No hay registros...
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
               <tfoot>
                 <tr></tr>
@@ -316,33 +388,17 @@ export function Products() {
                 role='status'
                 aria-live='polite'
               >
-                Mostrando 1 a 2 de 27
+                Total productos almacenados: {pagination.totalProducts}
               </p>
             </div>
             <div className='col-md-6'>
-              <nav className='d-lg-flex justify-content-lg-end dataTables_paginate paging_simple_numbers'>
-                <ul className='pagination'>
-                  <li className='page-item disabled'>
-                    <a className='page-link' aria-label='Previous'>
-                      <span aria-hidden='true'>«</span>
-                    </a>
-                  </li>
-                  <li className='page-item active'>
-                    <a className='page-link'>1</a>
-                  </li>
-                  <li className='page-item'>
-                    <a className='page-link'>2</a>
-                  </li>
-                  <li className='page-item'>
-                    <a className='page-link'>3</a>
-                  </li>
-                  <li className='page-item'>
-                    <a className='page-link' aria-label='Next'>
-                      <span aria-hidden='true'>»</span>
-                    </a>
-                  </li>
-                </ul>
-              </nav>
+              <Pagination
+                activePage={pagination.activePage}
+                itemsCountPerPage={PAGE_SIZE}
+                totalItemsCount={pagination.totalProducts}
+                pageRangeDisplayed={3}
+                onChange={handlePageChange}
+              />
             </div>
           </div>
         </div>

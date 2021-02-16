@@ -1,0 +1,11 @@
+.pagination [aria-label*='Go to page']:first-of-type {
+  margin-left: 3px;
+}
+
+.pagination [aria-label*='Go to page'] {
+  background-color: #4e73df;
+  color: #fff;
+  padding: 0.5em 0.75em;
+  margin-right: 3px;
+  border-radius: 5px;
+}
