@@ -44,7 +44,7 @@ export function ContactForm() {
               placeholder='Turin,56'
               name='address'
               onChange={formik.handleChange}
-              value={formik.values.username}
+              value={formik.values.address}
             />
           </div>
           <div className='form-row'>
@@ -60,7 +60,7 @@ export function ContactForm() {
                   placeholder='Cartagena'
                   name='city'
                   onChange={formik.handleChange}
-                  value={formik.values.username}
+                  value={formik.values.city}
                 />
               </div>
             </div>
@@ -75,7 +75,7 @@ export function ContactForm() {
                   placeholder='Colombia'
                   name='country'
                   onChange={formik.handleChange}
-                  value={formik.values.username}
+                  value={formik.values.country}
                 />
               </div>
             </div>
