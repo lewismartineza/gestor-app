@@ -1,8 +1,8 @@
 ## Requerimientos del Sistema
 
-- [git][git] v2.13 or greater
+- [git][git] v2.13 o mayor
 - [NodeJS][node] `^10.13 || 12 || 14 || 15`
-- [npm][npm] v6 or greater
+- [npm][npm] v6 o mayor
 
 Instalar los siguientes programas:
 
@@ -27,7 +27,7 @@ npm install ó yarn install
 
 ## Corriendo la aplicacion
 
-To get the app up and running (and really see if it worked), run:
+Para correr la aplicacion ejecuta el siguiente comando en tu terminal:
 
 ```shell
 npm start
@@ -41,8 +41,8 @@ npm test
 
 ## Contribuidores
 
-Juan Dario Franco Vargas
-Stiven Joel Pacheco Mendoza
+- Juan Dario Franco Vargas
+- Stiven Joel Pacheco Mendoza
 
 <!-- prettier-ignore-start -->
 [npm]: https://www.npmjs.com/
