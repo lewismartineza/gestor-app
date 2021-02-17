@@ -9,3 +9,8 @@
   margin-right: 3px;
   border-radius: 5px;
 }
+
+.registrarse,
+.login {
+  height: 100vh;
+}
