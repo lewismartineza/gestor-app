@@ -1,18 +1,28 @@
-import { useFormik } from 'formik';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import Pagination from 'react-js-pagination';
-import { Modal, ModalBody, ModalHeader } from 'reactstrap';
 import Swal from 'sweetalert2';
+import { CreateProductModalForm } from '../components/CreateProductModalForm';
 import { firestore } from '../utils/firebase';
 
 const PAGE_SIZE = 15;
+
+const defaultValues = {
+  name: '',
+  provider: '',
+  mark: '',
+  price: 0,
+  stock: 0,
+  expiration_date: '',
+  total_sale: 0,
+};
 
 export function Products() {
   const { uid } = JSON.parse(window.localStorage.getItem('gestor:user'));
   const [products, setProducts] = useState(null);
   const [modal, setModal] = useState(false);
   const [search, setSearch] = useState('');
+  const [editProduct, setEditProduct] = useState(null);
   const [pagination, setPagination] = useState({
     activePage: 0,
     totalPage: 0,
@@ -22,42 +32,31 @@ export function Products() {
 
   const toggle = () => setModal(!modal);
 
-  const formik = useFormik({
-    initialValues: {
-      name: '',
-      provider: '',
-      mark: '',
-      price: 0,
-      stock: 0,
-      expiration_date: '',
-    },
-    onSubmit: (values, actions) => {
-      const { expiration_date } = values;
-      firestore
-        .collection('products')
-        .add({
-          ...values,
-          name: values.name.toLowerCase(),
-          expiration_date: new Date(expiration_date),
-          userId: uid,
-        })
-        .then(() => {
-          Swal.fire({
-            icon: 'success',
-            title: `Producto ${values.name} con exito!`,
-          });
-          toggle();
-          actions.resetForm();
-        })
-        .catch(() => {
-          Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Ha ocurrido un error, no se ha podido eliminar el producto!',
-          });
+  async function createProduct(values, actions) {
+    const { expiration_date } = values;
+    firestore
+      .collection('products')
+      .add({
+        ...values,
+        name: values.name.toLowerCase(),
+        expiration_date: new Date(expiration_date),
+        userId: uid,
+      })
+      .then(() => {
+        Swal.fire({
+          icon: 'success',
+          title: `Producto ${values.name} con exito!`,
         });
-    },
-  });
+        toggle();
+      })
+      .catch(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Ha ocurrido un error, no se ha podido eliminar el producto!',
+        });
+      });
+  }
 
   async function deleteProduct(id) {
     firestore
@@ -105,6 +104,38 @@ export function Products() {
           }));
         });
     }
+  }
+
+  function updateProduct(values) {
+    if (values.stock === 0 && values.total_sale) {
+      return Swal.fire({
+        icon: 'info',
+        title: `No se encuentran ${values.name} en existencia!`,
+      });
+    }
+
+    firestore
+      .collection('products')
+      .doc(editProduct.id)
+      .set({
+        ...values,
+        stock: values.stock - values.total_sale,
+        total_sale: editProduct.total_sale + values.total_sale,
+      })
+      .then(() => {
+        Swal.fire({
+          icon: 'success',
+          title: `La información de contacto ha sido actualizada con exíto!`,
+        });
+        toggle();
+      })
+      .catch(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Ha ocurrido un error, no se ha podido actualizar el contacto!',
+        });
+      });
   }
 
   useEffect(() => {
@@ -165,91 +196,23 @@ export function Products() {
               <i className='fas fa-download fa-sm text-white-50'></i> Descargar
             </button>
           </div>
-
-          <Modal isOpen={modal} toggle={toggle}>
-            <ModalHeader toggle={toggle}>
-              Ingrese información del producto
-            </ModalHeader>
-            <ModalBody>
-              <form onSubmit={formik.handleSubmit}>
-                <div className='modal-body pr-4'>
-                  <input
-                    type='text'
-                    id='Nombre-Del-Producto'
-                    className='form-control m-2 p-2 '
-                    placeholder='Ingrese nombre del producto'
-                    name='name'
-                    height='37px'
-                    width='457px'
-                    onChange={formik.handleChange}
-                    value={formik.values.name}
-                  />
-                  <input
-                    type='text'
-                    id='Proveedor-1'
-                    className='form-control m-2 p-2'
-                    placeholder='Ingrese nombre del proveedor'
-                    name='provider'
-                    height='37px'
-                    width='457px'
-                    onChange={formik.handleChange}
-                    value={formik.values.provider}
-                  />
-                  <input
-                    type='text'
-                    id='Proveedor-1'
-                    className='form-control m-2 p-2'
-                    placeholder='Ingrese marca del producto'
-                    name='mark'
-                    height='37px'
-                    width='457px'
-                    onChange={formik.handleChange}
-                    value={formik.values.mark}
-                  />
-                  <input
-                    type='text'
-                    className='form-control m-2 p-2'
-                    placeholder='Ingrese el precio del producto'
-                    name='price'
-                    height='37px'
-                    width='457px'
-                    onChange={formik.handleChange}
-                    value={formik.values.price}
-                  />
-                  <label className='mt-4 mb-0 mr-2 ml-2'>
-                    Fecha de vencimiento
-                  </label>
-                  <input
-                    type='date'
-                    name='expiration_date'
-                    className='mt-4 mb-0 mr-4 ml-3'
-                    onChange={formik.handleChange}
-                    value={formik.values.expiration_date}
-                  />
-                  <label className='mt-4 mb-0 mr-4 ml-2'>Numero de Stock</label>
-                  <input
-                    type='number'
-                    name='stock'
-                    className='mr-4 ml-3'
-                    onChange={formik.handleChange}
-                    value={formik.values.stock}
-                  />
-                </div>
-                <div className='modal-footer'>
-                  <button
-                    className='btn btn-light'
-                    type='button'
-                    onClick={toggle}
-                  >
-                    Cancelar
-                  </button>
-                  <button className='btn btn-primary' type='submit'>
-                    Registrar
-                  </button>
-                </div>
-              </form>
-            </ModalBody>
-          </Modal>
+          {editProduct ? (
+            <CreateProductModalForm
+              modal={modal}
+              toggle={toggle}
+              initialValues={editProduct}
+              onSubmit={updateProduct}
+              isEdition
+              onReset={setEditProduct}
+            />
+          ) : (
+            <CreateProductModalForm
+              modal={modal}
+              toggle={toggle}
+              initialValues={defaultValues}
+              onSubmit={createProduct}
+            />
+          )}
 
           <div
             className='modal fade show pr-5 d-blok'
@@ -344,6 +307,7 @@ export function Products() {
                   <th>Proveedor</th>
                   <th>Marca</th>
                   <th>Existencias</th>
+                  <th>Vendidos</th>
                   <th>Precio</th>
                   <th>F. Vencimiento</th>
                   <th>Acción</th>
@@ -357,6 +321,7 @@ export function Products() {
                       <td>{product.provider}</td>
                       <td>{product.mark}</td>
                       <td>{product.stock}</td>
+                      <td>{product.total_sale}</td>
                       <td>
                         {new Intl.NumberFormat('es-CO', {
                           style: 'currency',
@@ -376,9 +341,17 @@ export function Products() {
                       </td>
                       <td>
                         <span
-                          className='fa fa-trash text-danger'
+                          className='fa fa-trash text-danger mr-3'
                           style={{ cursor: 'pointer', fontSize: '1.2em' }}
                           onClick={() => deleteProduct(product.id)}
+                        ></span>
+                        <span
+                          className='fa fa-eye text-primary'
+                          style={{ cursor: 'pointer', fontSize: '1.2em' }}
+                          onClick={() => {
+                            toggle();
+                            setEditProduct(product);
+                          }}
                         ></span>
                       </td>
                     </tr>
