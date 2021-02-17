@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Bar, Doughnut } from 'react-chartjs-2';
+import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import { Table } from 'reactstrap';
 import { firestore } from '../utils/firebase';
 
 export function Dashboard() {
@@ -8,6 +9,7 @@ export function Dashboard() {
   const [products, setProducts] = useState({
     groupByMonth: [],
     groupByStatus: [],
+    expireInTheMonth: [],
   });
 
   const data = {
@@ -94,9 +96,14 @@ export function Dashboard() {
             } else {
               instance.normal = instance.normal + 1;
             }
+
+            if (expiration_date.getMonth() === new Date().getMonth()) {
+              instance.expireInTheMonth.push(currentProduct);
+            }
+
             return instance;
           },
-          { expired: 0, normal: 0 },
+          { expired: 0, normal: 0, expireInTheMonth: [] },
         );
 
         setProducts({
@@ -105,6 +112,12 @@ export function Dashboard() {
             : [],
           groupByStatus: Object.keys(groupByStatus)
             ? Object.values(groupByStatus)
+            : [],
+          expireInTheMonth: groupByStatus.expireInTheMonth.length
+            ? _.orderBy(
+                groupByStatus.expireInTheMonth.slice(0, 5),
+                'expiration_date',
+              )
             : [],
         });
       });
@@ -126,13 +139,13 @@ export function Dashboard() {
         </button>
       </div>
       <div className='row'>
-        <div className='col-lg-7 col-xl-8'>
+        <div className='col-lg-6 col-xl-6'>
           <div className='card shadow mb-4'>
             <div className='card-header d-flex justify-content-between align-items-center'>
               <h6 className='text-primary font-weight-bold m-0'>
                 Movimientos Por Mes
               </h6>
-              <div className='dropdown no-arrow'>
+              {/* <div className='dropdown no-arrow'>
                 <button
                   className='btn btn-link btn-sm dropdown-toggle'
                   data-toggle='dropdown'
@@ -156,10 +169,22 @@ export function Dashboard() {
                     &nbsp;Something else here
                   </a>
                 </div>
-              </div>
+              </div> */}
             </div>
             <div className='card-body'>
               <Bar data={data} options={options} />
+            </div>
+          </div>
+        </div>
+        <div className='col-lg-6 col-xl-6'>
+          <div className='card shadow mb-4'>
+            <div className='card-header d-flex justify-content-between align-items-center'>
+              <h6 className='text-primary font-weight-bold m-0'>
+                Movimientos Por Mes
+              </h6>
+            </div>
+            <div className='card-body'>
+              <Line data={data} options={options} />
             </div>
           </div>
         </div>
@@ -169,31 +194,6 @@ export function Dashboard() {
               <h6 className='text-primary font-weight-bold m-0'>
                 Estado De Productos
               </h6>
-              <div className='dropdown no-arrow'>
-                <button
-                  className='btn btn-link btn-sm dropdown-toggle'
-                  data-toggle='dropdown'
-                  aria-expanded='false'
-                  type='button'
-                >
-                  <i className='fas fa-ellipsis-v text-gray-400'></i>
-                </button>
-                <div className='dropdown-menu shadow dropdown-menu-right animated--fade-in'>
-                  <p className='text-center dropdown-header'>
-                    dropdown header:
-                  </p>
-                  <a className='dropdown-item' href='#'>
-                    &nbsp;Action
-                  </a>
-                  <a className='dropdown-item' href='#'>
-                    &nbsp;Another action
-                  </a>
-                  <div className='dropdown-divider'></div>
-                  <a className='dropdown-item' href='#'>
-                    &nbsp;Something else here
-                  </a>
-                </div>
-              </div>
             </div>
             <div className='card-body'>
               <Doughnut
@@ -213,6 +213,48 @@ export function Dashboard() {
                 }}
                 options={options}
               />
+            </div>
+          </div>
+        </div>
+        <div className='col-lg-7 col-xl-8'>
+          <div className='card shadow mb-4'>
+            <div className='card-header d-flex justify-content-between align-items-center'>
+              <h6 className='text-primary font-weight-bold m-0'>
+                Productos Por Caducar en {data?.labels?.[new Date().getMonth()]}
+              </h6>
+            </div>
+            <div className='card-body'>
+              <Table striped>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Marca</th>
+                    <th>Stock</th>
+                    <th>Vendidas</th>
+                    <th>F. Vencimiento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.expireInTheMonth.map((product, index) => (
+                    <tr key={product.id}>
+                      <th scope='row'>{index + 1}</th>
+                      <td>{product.name}</td>
+                      <td>{product.mark}</td>
+                      <td>{product.stock}</td>
+                      <td>{product.total_sale}</td>
+                      <td>
+                        {product.expiration_date.toLocaleDateString('es', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
             </div>
           </div>
         </div>

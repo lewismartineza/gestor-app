@@ -316,7 +316,10 @@ export function Products() {
               <tbody>
                 {pagination.data.length ? (
                   pagination.data[pagination.activePage - 1].map((product) => (
-                    <tr key={product.id}>
+                    <tr
+                      key={product.id}
+                      className={product.stock === 0 ? 'table-danger' : null}
+                    >
                       <td>{product.name}</td>
                       <td>{product.provider}</td>
                       <td>{product.mark}</td>

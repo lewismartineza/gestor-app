@@ -135,6 +135,7 @@ export function BaseLayout({ component: Component, ...props }) {
                         </a> */}
                         <div className='dropdown-divider'></div>
                         <span
+                          style={{ cursor: 'pointer' }}
                           className='dropdown-item'
                           onClick={() => logout()}
                         >
