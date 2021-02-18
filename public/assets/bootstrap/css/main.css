@@ -14,3 +14,7 @@
 .login {
   height: 100vh;
 }
+
+.bg-login-image img {
+  height: fit-content;
+}

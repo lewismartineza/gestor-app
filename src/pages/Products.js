@@ -187,13 +187,14 @@ export function Products() {
               Insertar producto
             </button>
             <button
-              className='btn btn-primary btn-sm  d-none d-sm-inline-block'
+              className='btn btn-primary btn-sm d-sm-inline-block'
               role='button'
               onClick={() => {
                 window.print();
               }}
             >
-              <i className='fas fa-download fa-sm text-white-50'></i> Descargar
+              <i className='fas fa-download fa-sm text-white-50'></i>{' '}
+              <span className='d-none d-sm-inline-block'>Descargar</span>
             </button>
           </div>
           {editProduct ? (

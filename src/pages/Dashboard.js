@@ -128,7 +128,7 @@ export function Dashboard() {
       <div className='d-sm-flex justify-content-between align-items-center mb-4'>
         <h3 className='text-dark mb-0'>Inicio</h3>
         <button
-          className='btn btn-primary btn-sm d-none d-sm-inline-block'
+          className='btn btn-primary btn-sm d-sm-inline-block'
           role='button'
           onClick={() => {
             window.print();
@@ -237,7 +237,10 @@ export function Dashboard() {
                 </thead>
                 <tbody>
                   {products.expireInTheMonth.map((product, index) => (
-                    <tr key={product.id}>
+                    <tr
+                      key={product.id}
+                      className={product.stock === 0 ? 'table-danger' : null}
+                    >
                       <th scope='row'>{index + 1}</th>
                       <td>{product.name}</td>
                       <td>{product.mark}</td>
