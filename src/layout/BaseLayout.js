@@ -58,7 +58,7 @@ export function BaseLayout({ component: Component, ...props }) {
             <nav className='navbar navbar-light navbar-expand bg-white shadow mb-4 topbar static-top'>
               <div className='container-fluid'>
                 <button
-                  className='btn btn-link d-md-none rounded-circle mr-3'
+                  className='btn btn-link d-none rounded-circle mr-3'
                   id='sidebarToggleTop'
                   type='button'
                 >
