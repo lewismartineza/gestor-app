@@ -65,7 +65,7 @@ export function BaseLayout({ component: Component, ...props }) {
                   <i className='fas fa-bars'></i>
                 </button>
                 <ul className='nav navbar-nav flex-nowrap ml-auto'>
-                  <li className='nav-item dropdown d-sm-none no-arrow'>
+                  {/* <li className='nav-item dropdown d-sm-none no-arrow'>
                     <a
                       className='dropdown-toggle nav-link'
                       data-toggle='dropdown'
@@ -96,7 +96,7 @@ export function BaseLayout({ component: Component, ...props }) {
                         </div>
                       </form>
                     </div>
-                  </li>
+                  </li> */}
                   <li className='nav-item dropdown no-arrow mx-1'>
                     <div
                       className='shadow dropdown-list dropdown-menu dropdown-menu-right'
